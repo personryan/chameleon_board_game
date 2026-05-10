@@ -156,10 +156,21 @@ select option {
   padding: 0.55rem 0.8rem;
   background: rgba(255, 255, 255, 0.08);
   text-align: center;
+  min-width: 0;
 }
 
 .codeBlock span, .youLine { color: #9fb0c4; font-size: 0.78rem; }
-.codeBlock strong { display: block; font-size: 1.45rem; letter-spacing: 0.16em; }
+.codeBlock strong { display: block; margin-top: 0.25rem; font-size: 1.45rem; letter-spacing: 0.16em; }
+.inviteLink {
+  display: block;
+  margin-top: 0.2rem;
+  color: #9ff4cc;
+  font-size: 0.82rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  text-decoration-color: rgba(159, 244, 204, 0.55);
+  text-underline-offset: 0.18rem;
+}
 .youLine { grid-column: 1 / -1; text-align: center; }
 .youLine strong { color: #fff; }
 

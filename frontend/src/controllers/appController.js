@@ -148,7 +148,7 @@ export function createAppController(app) {
 
     try {
       if (action === 'home') navigate('/');
-      if (action === 'join-page') navigate('/join');
+      if (action === 'join-page') navigate(button.dataset.roomCode ? `/join/${button.dataset.roomCode}` : '/join');
       if (action === 'start-round' && roomCode) await gameService.startRound(roomCode);
       if (action === 'reveal-result' && roomCode) await gameService.revealResult(roomCode);
       if ((action === 'start-round' || action === 'reveal-result') && roomCode) await refreshRoom(roomCode);

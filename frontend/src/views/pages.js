@@ -1,11 +1,22 @@
 import { coordinates, ROUND_DURATION_SECONDS } from '../constants.js';
 import { escapeHtml, page } from './html.js';
 
+function inviteUrl(roomCode) {
+  const origin = typeof window === 'undefined' ? '' : window.location.origin;
+  return `${origin}/join/${encodeURIComponent(roomCode)}`;
+}
+
 function roomHeader(room, currentPlayer) {
+  const roomCode = room.roomCode;
+  const url = inviteUrl(roomCode);
   return `
     <header class="roomHeader">
       <button class="linkButton" data-action="home" type="button">Home</button>
-      <div class="codeBlock"><span>Room code</span><strong>${room.roomCode}</strong></div>
+      <div class="codeBlock">
+        <span>Invite link</span>
+        <a class="inviteLink" href="${escapeHtml(url)}">${escapeHtml(url)}</a>
+        <strong>${escapeHtml(roomCode)}</strong>
+      </div>
       <button class="iconButton" data-action="copy" type="button" aria-label="Copy invite">↗</button>
       ${currentPlayer ? `<p class="youLine">Playing as <strong>${escapeHtml(currentPlayer.name)}</strong>${currentPlayer.isHost ? ' · Host' : ''}</p>` : ''}
     </header>`;
@@ -182,7 +193,7 @@ export function roomPage(roomCode, roomState) {
   if (!currentPlayer) {
     return page(`
       ${roomHeader(room, null)}
-      <section class="card emptyState"><h1>Join this room</h1><p>This device is not registered as a player in ${escapeHtml(room.roomCode ?? roomCode)}.</p><button class="primary" data-action="join-page" type="button">Enter name to join</button></section>
+      <section class="card emptyState"><h1>Join this room</h1><p>This device is not registered as a player in ${escapeHtml(room.roomCode ?? roomCode)}.</p><button class="primary" data-action="join-page" data-room-code="${escapeHtml(room.roomCode ?? roomCode)}" type="button">Enter name to join</button></section>
     `);
   }
 
