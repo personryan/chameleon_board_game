@@ -10,6 +10,49 @@ npm run dev
 
 Then open `http://127.0.0.1:5173`.
 
+The runnable web app lives in `frontend/`. You can also run it directly:
+
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend is a Vite app. Put browser-safe Supabase credentials in `frontend/.env`.
+
+## Supabase backend
+
+The backend schema, realtime setup, RPCs, and seed boards are in `backend/supabase/migrations/202605100001_initial_game_backend.sql`.
+
+To apply it to a Supabase project:
+
+```bash
+cd backend
+supabase link --project-ref YOUR_PROJECT_REF
+supabase db push
+```
+
+Set frontend credentials from `frontend/.env.example`:
+
+```bash
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+More wiring notes are in `contexts/supabase-backend.md`.
+
+## Project structure
+
+```txt
+frontend/
+  src/config        environment loading
+  src/repositories  Supabase and local storage data access
+  src/services      game workflow logic
+  src/controllers   DOM events, routing, realtime refresh
+  src/views         HTML rendering
+backend/
+  supabase/         Supabase config and migrations
+```
+
 ## MVP features
 
 - Create a room with a short uppercase room code.
@@ -26,4 +69,4 @@ Then open `http://127.0.0.1:5173`.
 
 ## Current storage model
 
-This MVP is dependency-free and stores room state in browser `localStorage`, with cross-tab updates through the browser `storage` event. That keeps the prototype easy to run without Supabase credentials, but a production multi-phone game should replace the storage functions in `src/app.js` with a realtime backend such as Supabase.
+Shared game state now lives in Supabase. The frontend only stores the current device's temporary `player_id` per room in `localStorage`.
