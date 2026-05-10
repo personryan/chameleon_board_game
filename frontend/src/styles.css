@@ -99,7 +99,16 @@ input:focus, select:focus {
   box-shadow: 0 0 0 0.22rem rgba(123, 239, 190, 0.12);
 }
 
-select { appearance: none; }
+select {
+  appearance: none;
+  background-color: #102036;
+  color: #f7fbff;
+}
+
+select option {
+  background: #102036;
+  color: #f7fbff;
+}
 
 .primary, .secondary, .revealButton {
   min-height: 3.35rem;
