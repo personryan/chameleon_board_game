@@ -1,0 +1,82 @@
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+.pnp.cjs
+.yarn/install-state.gz
+
+# Package-manager caches
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+
+# Build output for React / Next.js / Vite
+.next/
+out/
+build/
+dist/
+.cache/
+.parcel-cache/
+.turbo/
+.vercel/output/
+
+# Test and coverage output
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# Supabase local development
+supabase/.branches/
+supabase/.temp/
+supabase/.env
+supabase/.env.*
+
+# Vercel local configuration
+.vercel/
+
+# TypeScript / framework generated files
+*.tsbuildinfo
+next-env.d.ts
+
+# Runtime data
+*.pid
+*.seed
+*.pid.lock
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor and IDE settings
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
