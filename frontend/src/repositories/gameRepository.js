@@ -12,6 +12,7 @@ function mapRoom(row) {
     status: row.status,
     hostPlayerId: row.host_player_id,
     selectedBoardId: row.selected_board_id,
+    preferredBoardId: row.preferred_board_id,
     selectedCoordinate: row.selected_coordinate,
     selectedWord: row.selected_word,
     chameleonPlayerId: row.chameleon_player_id,
@@ -88,6 +89,17 @@ export async function revealResult(roomCode, playerId) {
   throwIfError(error);
 }
 
+export async function updateRoomSettings(roomCode, playerId, preferredBoardId, roundDurationSeconds) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.rpc('update_room_settings', {
+    target_room_code: roomCode,
+    requesting_player_id: playerId,
+    preferred_board_id: preferredBoardId,
+    round_duration_seconds: roundDurationSeconds,
+  });
+  throwIfError(error);
+}
+
 export async function findRoomByCode(roomCode) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
@@ -97,6 +109,17 @@ export async function findRoomByCode(roomCode) {
     .maybeSingle();
   throwIfError(error);
   return mapRoom(data);
+}
+
+export async function listBoards() {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from('word_boards')
+    .select('*')
+    .eq('is_active', true)
+    .order('category', { ascending: true });
+  throwIfError(error);
+  return data.map(mapBoard);
 }
 
 export async function listPlayers(roomId) {

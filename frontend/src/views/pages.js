@@ -11,6 +11,33 @@ function roomHeader(room, currentPlayer) {
     </header>`;
 }
 
+function settingsPanel(room, boards) {
+  const timerOptions = [
+    { label: '1 min', value: 60 },
+    { label: '2 min', value: 120 },
+    { label: '3 min', value: 180 },
+    { label: '5 min', value: 300 },
+    { label: '10 min', value: 600 },
+  ];
+
+  return `
+    <form class="card form settingsForm" id="room-settings-form">
+      <div class="sectionTitle"><span aria-hidden="true">⚙</span><h2>Round settings</h2></div>
+      <label for="preferred-board-id">Theme</label>
+      <select id="preferred-board-id" name="preferredBoardId">
+        <option value="" ${room.preferredBoardId ? '' : 'selected'}>Random theme</option>
+        ${boards.map((board) => `<option value="${board.id}" ${room.preferredBoardId === board.id ? 'selected' : ''}>${escapeHtml(board.category)}</option>`).join('')}
+      </select>
+      <label for="round-duration-seconds">Timer</label>
+      <select id="round-duration-seconds" name="roundDurationSeconds">
+        ${timerOptions.map((option) => `<option value="${option.value}" ${Number(room.roundDurationSeconds) === option.value ? 'selected' : ''}>${option.label}</option>`).join('')}
+      </select>
+      <p class="error" id="settings-error" hidden></p>
+      <button class="secondary compact" type="submit">Save settings</button>
+    </form>
+  `;
+}
+
 export function homePage() {
   return page(`
     <div class="badge">Mobile party game MVP</div>
@@ -55,7 +82,7 @@ export function missingConfigPage(message) {
   `);
 }
 
-function lobby(room, players, currentPlayer) {
+function lobby(room, players, currentPlayer, boards) {
   const canStart = currentPlayer?.isHost && players.length >= 3;
   return page(`
     ${roomHeader(room, currentPlayer)}
@@ -66,6 +93,7 @@ function lobby(room, players, currentPlayer) {
         ${players.map((player) => `<li><span>${escapeHtml(player.name)}</span>${player.isHost ? '<span aria-label="Host">👑</span>' : ''}</li>`).join('')}
       </ul>
     </section>
+    ${currentPlayer?.isHost ? settingsPanel(room, boards) : ''}
     ${currentPlayer?.isHost
       ? `<button class="primary" data-action="start-round" type="button" ${canStart ? '' : 'disabled'}>${players.length < 3 ? `Need ${3 - players.length} more` : 'Start game'}</button>`
       : '<p class="helper">Waiting for the host to start the game.</p>'}
@@ -118,7 +146,7 @@ function game(room, currentPlayer, board) {
   `, 'gamePage');
 }
 
-function result(room, players, currentPlayer, board) {
+function result(room, players, currentPlayer, board, boards) {
   const chameleon = players.find((player) => player.id === room.chameleonPlayerId);
   return page(`
     ${roomHeader(room, currentPlayer)}
@@ -131,6 +159,7 @@ function result(room, players, currentPlayer, board) {
         <div><dt>Secret word</dt><dd>${escapeHtml(room.selectedWord ?? '')}</dd></div>
       </dl>
     </section>
+    ${currentPlayer?.isHost ? settingsPanel(room, boards) : ''}
     ${currentPlayer?.isHost
       ? '<button class="primary" data-action="start-round" type="button">↻ Start new round</button>'
       : '<p class="helper">Waiting for the host to start another round.</p>'}
@@ -141,7 +170,7 @@ function result(room, players, currentPlayer, board) {
 export function roomPage(roomCode, roomState) {
   if (!roomState) return loadingPage();
 
-  const { room, players, currentPlayer, board } = roomState;
+  const { room, players, currentPlayer, board, boards } = roomState;
 
   if (!room) {
     return page(`
@@ -157,7 +186,7 @@ export function roomPage(roomCode, roomState) {
     `);
   }
 
-  if (room.status === 'waiting') return lobby(room, players, currentPlayer);
+  if (room.status === 'waiting') return lobby(room, players, currentPlayer, boards);
   if (room.status === 'playing') return game(room, currentPlayer, board);
-  return result(room, players, currentPlayer, board);
+  return result(room, players, currentPlayer, board, boards);
 }

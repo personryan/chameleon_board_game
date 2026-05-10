@@ -41,6 +41,7 @@ export function createAppController(app) {
         players: [],
         currentPlayer: null,
         board: null,
+        boards: [],
         error: error instanceof Error ? error.message : 'Could not load room.',
       });
       render();
@@ -102,6 +103,22 @@ export function createAppController(app) {
         navigate(`/room/${await gameService.joinRoom(roomCode, playerName)}`);
       } catch (error) {
         showError('join-error', error instanceof Error ? error.message : 'Could not join room.');
+      }
+    }
+
+    if (form.id === 'room-settings-form') {
+      const roomCode = currentRoomCode();
+      if (!roomCode) return;
+
+      const formData = new FormData(form);
+      const preferredBoardId = formData.get('preferredBoardId')?.toString() ?? '';
+      const roundDurationSeconds = formData.get('roundDurationSeconds')?.toString() ?? '180';
+
+      try {
+        await gameService.updateRoomSettings(roomCode, preferredBoardId, roundDurationSeconds);
+        await refreshRoom(roomCode);
+      } catch (error) {
+        showError('settings-error', error instanceof Error ? error.message : 'Could not update settings.');
       }
     }
   }
