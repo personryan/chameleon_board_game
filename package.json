@@ -1,0 +1,10 @@
+{
+  "name": "chameleon-board-game",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-server.mjs",
+    "check": "node --check src/app.js && node --check scripts/dev-server.mjs"
+  }
+}
