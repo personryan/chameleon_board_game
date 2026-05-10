@@ -7,10 +7,20 @@ export function createAppController(app) {
   let unsubscribeRoom = null;
   let bootError = null;
 
+  function extractRoomCode(value = '') {
+    const match = decodeURIComponent(value).toUpperCase().match(/[A-Z0-9]{5,6}$/);
+    return match?.[0] ?? null;
+  }
+
   function getRoute() {
-    const [, route, roomCode] = window.location.pathname.split('/');
-    if (route === 'room' && roomCode) return { name: 'room', roomCode: roomCode.toUpperCase() };
-    if (route === 'join') return { name: 'join' };
+    const [, route = '', roomCode = ''] = window.location.pathname.split('/');
+    const decodedRoute = decodeURIComponent(route);
+    if (decodedRoute === 'room' && roomCode) return { name: 'room', roomCode: decodeURIComponent(roomCode).toUpperCase() };
+    if (decodedRoute === 'join') {
+      const searchRoomCode = new URLSearchParams(window.location.search).get('room');
+      return { name: 'join', roomCode: extractRoomCode(roomCode || searchRoomCode || '') };
+    }
+    if (decodedRoute.toLowerCase().startsWith('join')) return { name: 'join', roomCode: extractRoomCode(decodedRoute) };
     return { name: 'home' };
   }
 
@@ -73,7 +83,7 @@ export function createAppController(app) {
     syncSubscription(route);
 
     if (route.name === 'room') app.innerHTML = roomPage(route.roomCode, roomCache.get(route.roomCode));
-    else if (route.name === 'join') app.innerHTML = joinPage();
+    else if (route.name === 'join') app.innerHTML = joinPage(route.roomCode);
     else app.innerHTML = homePage();
   }
 
@@ -152,7 +162,7 @@ export function createAppController(app) {
         card.querySelector('.revealButton').hidden = false;
       }
       if (action === 'copy' && roomCode) {
-        await navigator.clipboard?.writeText(`${window.location.origin}/join - Room code: ${roomCode}`);
+        await navigator.clipboard?.writeText(`${window.location.origin}/join/${roomCode}`);
         button.textContent = '✓';
         setTimeout(() => { button.textContent = '↗'; }, 1200);
       }

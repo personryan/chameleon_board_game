@@ -53,14 +53,14 @@ export function homePage() {
   `, 'hero');
 }
 
-export function joinPage() {
+export function joinPage(roomCode = '') {
   return page(`
     <button class="linkButton" data-action="home" type="button">← Back</button>
     <h1>Join room</h1>
     <p class="lede">Ask the host for the room code, then enter your display name.</p>
     <form class="card form" id="join-room-form">
       <label for="room-code">Room code</label>
-      <input id="room-code" name="roomCode" placeholder="X7KD2" maxlength="6" autocapitalize="characters" />
+      <input id="room-code" name="roomCode" placeholder="X7KD2" value="${escapeHtml(roomCode)}" maxlength="6" autocapitalize="characters" />
       <label for="player-name">Your name</label>
       <input id="player-name" name="playerName" placeholder="Player name" autocomplete="name" />
       <p class="error" id="join-error" hidden></p>
