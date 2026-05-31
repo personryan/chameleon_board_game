@@ -12,6 +12,7 @@ function mapRoom(row) {
     status: row.status,
     hostPlayerId: row.host_player_id,
     selectedBoardId: row.selected_board_id,
+    selectedBoardData: row.selected_board_data,
     preferredBoardId: row.preferred_board_id,
     selectedCoordinate: row.selected_coordinate,
     selectedWord: row.selected_word,
@@ -94,8 +95,8 @@ export async function updateRoomSettings(roomCode, playerId, preferredBoardId, r
   const { error } = await supabase.rpc('update_room_settings', {
     target_room_code: roomCode,
     requesting_player_id: playerId,
-    preferred_board_id: preferredBoardId,
-    round_duration_seconds: roundDurationSeconds,
+    new_preferred_board_id: preferredBoardId,
+    new_round_duration_seconds: roundDurationSeconds,
   });
   throwIfError(error);
 }

@@ -149,6 +149,7 @@ select option {
 .iconButton { width: 2.65rem; height: 2.65rem; padding: 0; display: grid; place-items: center; }
 .error { color: #ffaaa5; font-weight: 800; }
 .helper { color: #b9c7d6; text-align: center; line-height: 1.45; }
+.settingsHint { color: #9fb0c4; font-size: 0.78rem; text-align: center; }
 
 .roomHeader {
   display: grid;

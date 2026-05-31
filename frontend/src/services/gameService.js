@@ -63,7 +63,11 @@ export async function loadRoomState(roomCode) {
     ? players.find((player) => player.id === currentPlayerId) ?? null
     : null;
 
-  return { room, players, currentPlayer, board, boards };
+  const roundBoard = board && room.selectedBoardData
+    ? { ...board, boardData: room.selectedBoardData }
+    : board;
+
+  return { room, players, currentPlayer, board: roundBoard, boards };
 }
 
 export function subscribeToRoom(roomCode, onChange) {

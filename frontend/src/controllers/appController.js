@@ -220,6 +220,12 @@ export function createAppController(app) {
     }
   }
 
+  function handleChange(event) {
+    if (!(event.target instanceof HTMLSelectElement)) return;
+    const form = event.target.closest('#room-settings-form');
+    if (form instanceof HTMLFormElement) form.requestSubmit();
+  }
+
   async function handleClick(event) {
     const button = event.target.closest('button[data-action]');
     if (!button) return;
@@ -256,6 +262,7 @@ export function createAppController(app) {
     bootError = errorMessage;
     document.addEventListener('submit', handleSubmit);
     document.addEventListener('input', handleInput);
+    document.addEventListener('change', handleChange);
     document.addEventListener('click', handleClick);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') pollActiveRoom();

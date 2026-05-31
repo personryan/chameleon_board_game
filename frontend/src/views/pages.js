@@ -45,6 +45,7 @@ function settingsPanel(room, boards) {
       </select>
       <p class="error" id="settings-error" hidden></p>
       <button class="secondary compact" type="submit">Save settings</button>
+      <p class="settingsHint">Changes save automatically.</p>
     </form>
   `;
 }
