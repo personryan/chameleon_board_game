@@ -60,14 +60,16 @@ export async function loadRoomState(roomCode) {
   ]);
   const currentPlayerId = localPlayerRepository.getRememberedPlayerId(room.roomCode);
   const currentPlayer = currentPlayerId
-    ? players.find((player) => player.id === currentPlayerId) ?? null
+    ? players.find((player) => player.id === currentPlayerId && player.isActive) ?? null
     : null;
+  const activePlayers = players.filter((player) => player.isActive);
+  const chameleon = players.find((player) => player.id === room.chameleonPlayerId) ?? null;
 
   const roundBoard = board && room.selectedBoardData
     ? { ...board, boardData: room.selectedBoardData }
     : board;
 
-  return { room, players, currentPlayer, board: roundBoard, boards };
+  return { room, players: activePlayers, currentPlayer, chameleon, board: roundBoard, boards };
 }
 
 export function subscribeToRoom(roomCode, onChange) {

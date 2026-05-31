@@ -30,6 +30,7 @@ function mapPlayer(row) {
     roomId: row.room_id,
     name: row.name,
     isHost: row.is_host,
+    isActive: row.is_active ?? true,
     role: row.role,
     joinedAt: row.joined_at,
     lastSeenAt: row.last_seen_at,
