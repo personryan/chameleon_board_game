@@ -100,6 +100,26 @@ export async function updateRoomSettings(roomCode, playerId, preferredBoardId, r
   throwIfError(error);
 }
 
+export async function renamePlayer(roomCode, playerId, playerName) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.rpc('rename_player', {
+    target_room_code: roomCode,
+    requesting_player_id: playerId,
+    player_name: playerName,
+  });
+  throwIfError(error);
+}
+
+export async function removePlayer(roomCode, requestingPlayerId, playerId) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.rpc('remove_player', {
+    target_room_code: roomCode,
+    requesting_player_id: requestingPlayerId,
+    target_player_id: playerId,
+  });
+  throwIfError(error);
+}
+
 export async function findRoomByCode(roomCode) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase

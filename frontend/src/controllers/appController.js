@@ -3,9 +3,11 @@ import { homePage, joinPage, missingConfigPage, roomPage } from '../views/pages.
 
 export function createAppController(app) {
   const roomCache = new Map();
+  const roomStateSignatures = new Map();
   let activeRoomCode = null;
   let unsubscribeRoom = null;
   let bootError = null;
+  let isPollingRoom = false;
 
   function extractRoomCode(value = '') {
     const match = decodeURIComponent(value).toUpperCase().match(/[A-Z0-9]{5,6}$/);
@@ -41,11 +43,21 @@ export function createAppController(app) {
     render();
   }
 
-  async function refreshRoom(roomCode) {
+  function roomStateSignature(roomState) {
+    return JSON.stringify(roomState);
+  }
+
+  async function refreshRoom(roomCode, { renderIfUnchanged = true, silent = false } = {}) {
     try {
-      roomCache.set(roomCode, await gameService.loadRoomState(roomCode));
+      const roomState = await gameService.loadRoomState(roomCode);
+      const signature = roomStateSignature(roomState);
+      const hasChanged = roomStateSignatures.get(roomCode) !== signature;
+      roomCache.set(roomCode, roomState);
+      roomStateSignatures.set(roomCode, signature);
+      if (!hasChanged && !renderIfUnchanged) return;
       render();
     } catch (error) {
+      if (silent) return;
       roomCache.set(roomCode, {
         room: null,
         players: [],
@@ -55,6 +67,18 @@ export function createAppController(app) {
         error: error instanceof Error ? error.message : 'Could not load room.',
       });
       render();
+    }
+  }
+
+  async function pollActiveRoom() {
+    const roomCode = currentRoomCode();
+    if (!roomCode || isPollingRoom) return;
+
+    isPollingRoom = true;
+    try {
+      await refreshRoom(roomCode, { renderIfUnchanged: false, silent: true });
+    } finally {
+      isPollingRoom = false;
     }
   }
 
@@ -82,9 +106,36 @@ export function createAppController(app) {
     const route = getRoute();
     syncSubscription(route);
 
+    const visibleRole = document.querySelector('.roleCard[data-round-started-at] .roleContent:not([hidden])');
+    const revealedRound = visibleRole?.closest('.roleCard')?.dataset.roundStartedAt;
+
     if (route.name === 'room') app.innerHTML = roomPage(route.roomCode, roomCache.get(route.roomCode));
     else if (route.name === 'join') app.innerHTML = joinPage(route.roomCode);
     else app.innerHTML = homePage();
+
+    if (revealedRound) {
+      const roleCard = document.querySelector(`.roleCard[data-round-started-at="${revealedRound}"]`);
+      const revealButton = roleCard?.querySelector('.revealButton');
+      const roleContent = roleCard?.querySelector('.roleContent');
+      if (revealButton && roleContent) {
+        revealButton.hidden = true;
+        roleContent.hidden = false;
+      }
+    }
+  }
+
+  function updateVisibleTimer() {
+    const timer = document.querySelector('.timer[data-ends-at]');
+    if (!timer) return;
+
+    const endsAt = Number(timer.dataset.endsAt);
+    const remainingSeconds = Math.max(0, Math.ceil((endsAt - Date.now()) / 1_000));
+    const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+    const seconds = (remainingSeconds % 60).toString().padStart(2, '0');
+    const value = timer.querySelector('[data-timer-value]');
+    if (value) value.textContent = remainingSeconds === 0 ? "Time's up" : `${minutes}:${seconds}`;
+    timer.classList.toggle('timerDone', remainingSeconds === 0);
+    if (remainingSeconds === 0) timer.removeAttribute('data-ends-at');
   }
 
   async function handleSubmit(event) {
@@ -129,6 +180,36 @@ export function createAppController(app) {
         await refreshRoom(roomCode);
       } catch (error) {
         showError('settings-error', error instanceof Error ? error.message : 'Could not update settings.');
+      }
+    }
+
+    if (form.id === 'rename-player-form') {
+      const roomCode = currentRoomCode();
+      if (!roomCode) return;
+
+      const playerName = new FormData(form).get('playerName')?.toString() ?? '';
+      if (!playerName.trim()) return showError('rename-error', 'Enter a name.');
+
+      try {
+        await gameService.renamePlayer(roomCode, playerName);
+        await refreshRoom(roomCode);
+      } catch (error) {
+        showError('rename-error', error instanceof Error ? error.message : 'Could not change your name.');
+      }
+    }
+
+    if (form.id === 'remove-player-form') {
+      const roomCode = currentRoomCode();
+      if (!roomCode) return;
+
+      const playerId = new FormData(form).get('playerId')?.toString() ?? '';
+      if (!playerId) return showError('remove-error', 'Choose a player to remove.');
+
+      try {
+        await gameService.removePlayer(roomCode, playerId);
+        await refreshRoom(roomCode);
+      } catch (error) {
+        showError('remove-error', error instanceof Error ? error.message : 'Could not remove player.');
       }
     }
   }
@@ -176,12 +257,13 @@ export function createAppController(app) {
     document.addEventListener('submit', handleSubmit);
     document.addEventListener('input', handleInput);
     document.addEventListener('click', handleClick);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') pollActiveRoom();
+    });
     window.addEventListener('popstate', render);
-    window.setInterval(() => {
-      const roomCode = currentRoomCode();
-      const room = roomCode ? roomCache.get(roomCode)?.room : null;
-      if (room?.status === 'playing') render();
-    }, 1_000);
+    window.addEventListener('focus', pollActiveRoom);
+    window.setInterval(updateVisibleTimer, 1_000);
+    window.setInterval(pollActiveRoom, 5_000);
     render();
   }
 
