@@ -52,17 +52,19 @@ function settingsPanel(room, boards) {
 
 function removalPanel(players, currentPlayer) {
   const removablePlayers = players.filter((player) => !player.isHost);
-  if (!currentPlayer?.isHost || removablePlayers.length === 0) return '';
+  if (!currentPlayer?.isHost) return '';
 
   return `
     <form class="card form" id="remove-player-form">
       <label for="remove-player-id">Remove player</label>
-      <div class="inlineForm">
-        <select id="remove-player-id" name="playerId">
-          ${removablePlayers.map((player) => `<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`).join('')}
-        </select>
-        <button class="danger compact" type="submit">Remove</button>
-      </div>
+      ${removablePlayers.length > 0
+        ? `<div class="inlineForm">
+            <select id="remove-player-id" name="playerId">
+              ${removablePlayers.map((player) => `<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`).join('')}
+            </select>
+            <button class="danger compact" type="submit">Remove</button>
+          </div>`
+        : '<p class="helper">No other active players in this room.</p>'}
       <p class="error" id="remove-error" hidden></p>
     </form>`;
 }
