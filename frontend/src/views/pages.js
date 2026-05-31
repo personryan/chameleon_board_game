@@ -45,6 +45,7 @@ function settingsPanel(room, boards) {
       </select>
       <p class="error" id="settings-error" hidden></p>
       <button class="secondary compact" type="submit">Save settings</button>
+      <p class="settingsHint">Changes save automatically.</p>
     </form>
   `;
 }
@@ -104,6 +105,25 @@ function lobby(room, players, currentPlayer, boards) {
         ${players.map((player) => `<li><span>${escapeHtml(player.name)}</span>${player.isHost ? '<span aria-label="Host">👑</span>' : ''}</li>`).join('')}
       </ul>
     </section>
+    <form class="card form renameForm" id="rename-player-form">
+      <label for="player-name">Change your name</label>
+      <div class="inlineForm">
+        <input id="player-name" name="playerName" value="${escapeHtml(currentPlayer.name)}" maxlength="40" autocomplete="name" />
+        <button class="secondary compact" type="submit">Save</button>
+      </div>
+      <p class="error" id="rename-error" hidden></p>
+    </form>
+    ${currentPlayer?.isHost && players.some((player) => !player.isHost) ? `
+      <form class="card form" id="remove-player-form">
+        <label for="remove-player-id">Remove player</label>
+        <div class="inlineForm">
+          <select id="remove-player-id" name="playerId">
+            ${players.filter((player) => !player.isHost).map((player) => `<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`).join('')}
+          </select>
+          <button class="danger compact" type="submit">Remove</button>
+        </div>
+        <p class="error" id="remove-error" hidden></p>
+      </form>` : ''}
     ${currentPlayer?.isHost ? settingsPanel(room, boards) : ''}
     ${currentPlayer?.isHost
       ? `<button class="primary" data-action="start-round" type="button" ${canStart ? '' : 'disabled'}>${players.length < 3 ? `Need ${3 - players.length} more` : 'Start game'}</button>`
@@ -119,10 +139,11 @@ function timer(room) {
   const remainingSeconds = Math.max(0, duration - elapsedSeconds);
   const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
   const seconds = (remainingSeconds % 60).toString().padStart(2, '0');
+  const endsAt = startedAt + duration * 1_000;
   return `
-    <section class="timer ${remainingSeconds === 0 ? 'timerDone' : ''}" aria-live="polite">
+    <section class="timer ${remainingSeconds === 0 ? 'timerDone' : ''}" data-ends-at="${endsAt}" aria-live="polite">
       <span aria-hidden="true">⏳</span>
-      <div><p>${remainingSeconds === 0 ? "Time's up" : `${minutes}:${seconds}`}</p><span>Discuss. Describe. Deduce.</span></div>
+      <div><p data-timer-value>${remainingSeconds === 0 ? "Time's up" : `${minutes}:${seconds}`}</p><span>Discuss. Describe. Deduce.</span></div>
     </section>`;
 }
 
@@ -147,7 +168,7 @@ function game(room, currentPlayer, board) {
   return page(`
     ${roomHeader(room, currentPlayer)}
     ${timer(room)}
-    <section class="card roleCard" data-revealed="false">
+    <section class="card roleCard" data-round-started-at="${escapeHtml(room.timerStartedAt ?? '')}">
       <button class="revealButton" data-action="reveal-role" type="button">👁 Tap to reveal your role</button>
       <div class="roleContent" hidden>${roleContent}<button class="secondary compact" data-action="hide-role" type="button">🙈 Hide role</button></div>
     </section>

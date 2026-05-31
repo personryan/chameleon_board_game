@@ -110,7 +110,7 @@ select option {
   color: #f7fbff;
 }
 
-.primary, .secondary, .revealButton {
+.primary, .secondary, .danger, .revealButton {
   min-height: 3.35rem;
   border-radius: 1rem;
   padding: 0.85rem 1.1rem;
@@ -132,6 +132,12 @@ select option {
   color: #f7fbff;
 }
 
+.danger {
+  border: 1px solid rgba(255, 170, 165, 0.3);
+  background: rgba(255, 170, 165, 0.14);
+  color: #ffaaa5;
+}
+
 .compact { min-height: 2.6rem; padding: 0.65rem 0.8rem; }
 .linkButton, .iconButton {
   border-radius: 999px;
@@ -143,6 +149,7 @@ select option {
 .iconButton { width: 2.65rem; height: 2.65rem; padding: 0; display: grid; place-items: center; }
 .error { color: #ffaaa5; font-weight: 800; }
 .helper { color: #b9c7d6; text-align: center; line-height: 1.45; }
+.settingsHint { color: #9fb0c4; font-size: 0.78rem; text-align: center; }
 
 .roomHeader {
   display: grid;
@@ -197,6 +204,9 @@ select option {
   font-weight: 800;
 }
 
+.inlineForm { display: flex; gap: 0.55rem; align-items: center; }
+.inlineForm input, .inlineForm select { min-width: 0; }
+
 .timer {
   border: 1px solid rgba(123, 239, 190, 0.28);
   border-radius: 1.2rem;
@@ -220,27 +230,27 @@ select option {
 .roleInner p { color: #dbe8f4; line-height: 1.45; }
 .chameleonRole { background: linear-gradient(135deg, rgba(106, 78, 255, 0.3), rgba(255, 92, 122, 0.18)); }
 
-.boardWrap { overflow-x: auto; padding-bottom: 0.3rem; }
+.boardWrap { width: 100%; }
 .boardGrid {
-  min-width: 30rem;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 0.45rem;
+  gap: 0.25rem;
 }
 
 .cell {
-  min-height: 4.5rem;
+  min-width: 0;
+  min-height: 3.9rem;
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 0.85rem;
-  padding: 0.55rem;
+  border-radius: 0.6rem;
+  padding: 0.3rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   background: rgba(255, 255, 255, 0.08);
 }
 
-.cell span { color: #9fb0c4; font-size: 0.72rem; font-weight: 900; }
-.cell strong { font-size: 0.93rem; overflow-wrap: anywhere; }
+.cell span { color: #9fb0c4; font-size: 0.62rem; font-weight: 900; }
+.cell strong { font-size: clamp(0.58rem, 2.35vw, 0.8rem); line-height: 1.08; overflow-wrap: anywhere; }
 .selectedCell {
   border-color: #f7c866;
   background: rgba(247, 200, 102, 0.2);
@@ -259,5 +269,8 @@ select option {
 @media (min-width: 44rem) {
   .page { padding: 2rem 1rem; }
   .gamePage { width: min(100%, 48rem); }
-  .boardGrid { min-width: 0; }
+  .boardGrid { gap: 0.45rem; }
+  .cell { min-height: 4.5rem; border-radius: 0.85rem; padding: 0.55rem; }
+  .cell span { font-size: 0.72rem; }
+  .cell strong { font-size: 0.93rem; }
 }
