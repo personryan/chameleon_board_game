@@ -50,6 +50,23 @@ function settingsPanel(room, boards) {
   `;
 }
 
+function removalPanel(players, currentPlayer) {
+  const removablePlayers = players.filter((player) => !player.isHost);
+  if (!currentPlayer?.isHost || removablePlayers.length === 0) return '';
+
+  return `
+    <form class="card form" id="remove-player-form">
+      <label for="remove-player-id">Remove player</label>
+      <div class="inlineForm">
+        <select id="remove-player-id" name="playerId">
+          ${removablePlayers.map((player) => `<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`).join('')}
+        </select>
+        <button class="danger compact" type="submit">Remove</button>
+      </div>
+      <p class="error" id="remove-error" hidden></p>
+    </form>`;
+}
+
 export function homePage() {
   return page(`
     <div class="badge">Mobile party game MVP</div>
@@ -113,17 +130,7 @@ function lobby(room, players, currentPlayer, boards) {
       </div>
       <p class="error" id="rename-error" hidden></p>
     </form>
-    ${currentPlayer?.isHost && players.some((player) => !player.isHost) ? `
-      <form class="card form" id="remove-player-form">
-        <label for="remove-player-id">Remove player</label>
-        <div class="inlineForm">
-          <select id="remove-player-id" name="playerId">
-            ${players.filter((player) => !player.isHost).map((player) => `<option value="${escapeHtml(player.id)}">${escapeHtml(player.name)}</option>`).join('')}
-          </select>
-          <button class="danger compact" type="submit">Remove</button>
-        </div>
-        <p class="error" id="remove-error" hidden></p>
-      </form>` : ''}
+    ${removalPanel(players, currentPlayer)}
     ${currentPlayer?.isHost ? settingsPanel(room, boards) : ''}
     ${currentPlayer?.isHost
       ? `<button class="primary" data-action="start-round" type="button" ${canStart ? '' : 'disabled'}>${players.length < 3 ? `Need ${3 - players.length} more` : 'Start game'}</button>`
@@ -160,7 +167,7 @@ function boardGrid(room, board) {
     </section>`;
 }
 
-function game(room, currentPlayer, board) {
+function game(room, players, currentPlayer, board) {
   const roleContent = currentPlayer.role === 'chameleon'
     ? `<div class="roleInner chameleonRole"><p class="eyebrow">Your role</p><h1>You are the Chameleon.</h1><p>Try to blend in. Listen carefully. Do not reveal yourself.</p></div>`
     : `<div class="roleInner"><p class="eyebrow">Your role</p><h1>You are Common.</h1><p><strong>Category:</strong> ${escapeHtml(board?.category ?? '')}</p><p><strong>Secret coordinate:</strong> ${escapeHtml(room.selectedCoordinate ?? '')}</p></div>`;
@@ -174,12 +181,12 @@ function game(room, currentPlayer, board) {
     </section>
     ${currentPlayer.role === 'common' ? boardGrid(room, board) : ''}
     ${currentPlayer.isHost ? '<button class="secondary" data-action="reveal-result" type="button">Reveal result</button>' : ''}
+    ${removalPanel(players, currentPlayer)}
     <p class="error" id="room-error" hidden></p>
   `, 'gamePage');
 }
 
-function result(room, players, currentPlayer, board, boards) {
-  const chameleon = players.find((player) => player.id === room.chameleonPlayerId);
+function result(room, players, currentPlayer, chameleon, board, boards) {
   return page(`
     ${roomHeader(room, currentPlayer)}
     <section class="card resultCard">
@@ -191,6 +198,7 @@ function result(room, players, currentPlayer, board, boards) {
         <div><dt>Secret word</dt><dd>${escapeHtml(room.selectedWord ?? '')}</dd></div>
       </dl>
     </section>
+    ${removalPanel(players, currentPlayer)}
     ${currentPlayer?.isHost ? settingsPanel(room, boards) : ''}
     ${currentPlayer?.isHost
       ? '<button class="primary" data-action="start-round" type="button">↻ Start new round</button>'
@@ -202,7 +210,7 @@ function result(room, players, currentPlayer, board, boards) {
 export function roomPage(roomCode, roomState) {
   if (!roomState) return loadingPage();
 
-  const { room, players, currentPlayer, board, boards } = roomState;
+  const { room, players, currentPlayer, chameleon, board, boards } = roomState;
 
   if (!room) {
     return page(`
@@ -219,6 +227,6 @@ export function roomPage(roomCode, roomState) {
   }
 
   if (room.status === 'waiting') return lobby(room, players, currentPlayer, boards);
-  if (room.status === 'playing') return game(room, currentPlayer, board);
-  return result(room, players, currentPlayer, board, boards);
+  if (room.status === 'playing') return game(room, players, currentPlayer, board);
+  return result(room, players, currentPlayer, chameleon, board, boards);
 }

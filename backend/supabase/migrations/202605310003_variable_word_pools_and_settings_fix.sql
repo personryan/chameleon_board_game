@@ -6,6 +6,9 @@ alter table public.word_boards
   check (public.jsonb_object_key_count(board_data) >= 30);
 
 alter table public.rooms
+  add column if not exists preferred_board_id uuid references public.word_boards(id);
+
+alter table public.rooms
   add column if not exists selected_board_data jsonb;
 
 alter table public.rooms
